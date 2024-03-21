@@ -48,7 +48,7 @@ typedef enum
 #define IGNITION_BUTTON_THRESHOLD 400
 #define THROTTLE_DEVIATION_THRESHOLD 10
 
-#define ADC_SAMPLE_COUNT 5
+#define ADC_SAMPLE_COUNT 15
 #define ADC_MAX_LIMIT 1023
 #define ADC_MIN_LIMIT 0
 
@@ -120,7 +120,7 @@ uint32_t sum = 0, average = 0;
 
 int percentageDeviation = 0;
 
-static uint32_t primaryPotValue = 0, secondaryPotValue = 0;
+uint32_t primaryPotValue = 0, secondaryPotValue = 0;
 int torqueRefLimit = 5000;
 
 const int SPEED_REF_LIMIT = (6500 + 32768); // RPM' = (Actual RPM + 32768)
@@ -824,7 +824,7 @@ uint32_t getADCAverage(ADC_ChannelConfTypeDef* adcChConfig, uint32_t adcChannel)
 	{
 		HAL_ADC_Start(&hadc1);
 
-		HAL_ADC_PollForConversion(&hadc1, 10);
+		HAL_ADC_PollForConversion(&hadc1, (1U));
 
 		adcBuffer[i] = HAL_ADC_GetValue(&hadc1);
 
@@ -933,17 +933,26 @@ bool throttleSensorDeviationCheck()
 
 		secondaryPotValue = getSecondaryThrottlePosition(&sConfig);
 
-		if (primaryPotValue > secondaryPotValue)
+		if (primaryPotValue == 0 || secondaryPotValue == 0)
 		{
-			percentageDeviation = (((primaryPotValue - secondaryPotValue) / secondaryPotValue) * 100);
-		}
-		else if (secondaryPotValue > primaryPotValue)
-		{
-			percentageDeviation = (((secondaryPotValue - primaryPotValue) / primaryPotValue) * 100);
+			percentageDeviation = 0;
+
+			return false;
 		}
 		else
 		{
-			percentageDeviation = 0;
+			if (primaryPotValue > secondaryPotValue)
+			{
+				percentageDeviation = (((primaryPotValue - secondaryPotValue) / (float)primaryPotValue) * 100);
+			}
+			else if (secondaryPotValue > primaryPotValue)
+			{
+				percentageDeviation = (((secondaryPotValue - primaryPotValue) / (float)secondaryPotValue) * 100);
+			}
+			else
+			{
+				percentageDeviation = 0;
+			}
 		}
 
 		if (percentageDeviation > THROTTLE_DEVIATION_THRESHOLD)

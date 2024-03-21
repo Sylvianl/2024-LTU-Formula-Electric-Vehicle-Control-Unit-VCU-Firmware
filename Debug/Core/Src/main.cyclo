@@ -22,7 +22,7 @@
 ../Core/Src/main.c:891:10:getSecondaryThrottlePosition	1
 ../Core/Src/main.c:896:6:primaryThrottleSensorErrorCheck	3
 ../Core/Src/main.c:910:6:secondaryThrottleSensorErrorCheck	3
-../Core/Src/main.c:924:6:throttleSensorDeviationCheck	6
-../Core/Src/main.c:960:6:torqueRequest	5
-../Core/Src/main.c:997:6:HAL_TIM_PeriodElapsedCallback	2
-../Core/Src/main.c:1014:6:Error_Handler	1
+../Core/Src/main.c:924:6:throttleSensorDeviationCheck	8
+../Core/Src/main.c:969:6:torqueRequest	5
+../Core/Src/main.c:1006:6:HAL_TIM_PeriodElapsedCallback	2
+../Core/Src/main.c:1023:6:Error_Handler	1
