@@ -39,7 +39,10 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  C:/Users/kmehta/Dropbox/2024\ LTU\ Formula\ Electric\ Firmware/2024\ LTU\ FE\ Vehicle\ Control\ Unit\ Firmware/ThirdParty/FreeRTOS/include/mpu_wrappers.h \
  C:/Users/kmehta/Dropbox/2024\ LTU\ Formula\ Electric\ Firmware/2024\ LTU\ FE\ Vehicle\ Control\ Unit\ Firmware/ThirdParty/FreeRTOS/include/task.h \
  C:/Users/kmehta/Dropbox/2024\ LTU\ Formula\ Electric\ Firmware/2024\ LTU\ FE\ Vehicle\ Control\ Unit\ Firmware/ThirdParty/FreeRTOS/include/list.h \
- ../Core/Inc/CAN.h ../Core/Inc/main.h ../Core/Inc/_do_quasar_canopen.h
+ C:/Users/kmehta/Dropbox/2024\ LTU\ Formula\ Electric\ Firmware/2024\ LTU\ FE\ Vehicle\ Control\ Unit\ Firmware/ThirdParty/FreeRTOS/include/queue.h \
+ C:/Users/kmehta/Dropbox/2024\ LTU\ Formula\ Electric\ Firmware/2024\ LTU\ FE\ Vehicle\ Control\ Unit\ Firmware/ThirdParty/FreeRTOS/include/task.h \
+ ../Core/Inc/CAN.h ../Core/Inc/main.h ../Core/Inc/_do_quasar_canopen.h \
+ ../Core/Inc/isolation.h ../Core/Inc/temp.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal.h:
 ../Core/Inc/stm32f7xx_hal_conf.h:
@@ -81,6 +84,10 @@ C:/Users/kmehta/Dropbox/2024\ LTU\ Formula\ Electric\ Firmware/2024\ LTU\ FE\ Ve
 C:/Users/kmehta/Dropbox/2024\ LTU\ Formula\ Electric\ Firmware/2024\ LTU\ FE\ Vehicle\ Control\ Unit\ Firmware/ThirdParty/FreeRTOS/include/mpu_wrappers.h:
 C:/Users/kmehta/Dropbox/2024\ LTU\ Formula\ Electric\ Firmware/2024\ LTU\ FE\ Vehicle\ Control\ Unit\ Firmware/ThirdParty/FreeRTOS/include/task.h:
 C:/Users/kmehta/Dropbox/2024\ LTU\ Formula\ Electric\ Firmware/2024\ LTU\ FE\ Vehicle\ Control\ Unit\ Firmware/ThirdParty/FreeRTOS/include/list.h:
+C:/Users/kmehta/Dropbox/2024\ LTU\ Formula\ Electric\ Firmware/2024\ LTU\ FE\ Vehicle\ Control\ Unit\ Firmware/ThirdParty/FreeRTOS/include/queue.h:
+C:/Users/kmehta/Dropbox/2024\ LTU\ Formula\ Electric\ Firmware/2024\ LTU\ FE\ Vehicle\ Control\ Unit\ Firmware/ThirdParty/FreeRTOS/include/task.h:
 ../Core/Inc/CAN.h:
 ../Core/Inc/main.h:
 ../Core/Inc/_do_quasar_canopen.h:
+../Core/Inc/isolation.h:
+../Core/Inc/temp.h:

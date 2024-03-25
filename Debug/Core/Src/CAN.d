@@ -30,7 +30,8 @@ Core/Src/CAN.o: ../Core/Src/CAN.c ../Core/Inc/CAN.h ../Core/Inc/main.h \
  ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_pwr_ex.h \
  ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_tim.h \
  ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_tim_ex.h \
- ../Core/Inc/_do_quasar_canopen.h
+ ../Core/Inc/_do_quasar_canopen.h ../Core/Inc/isolation.h \
+ ../Core/Inc/temp.h
 ../Core/Inc/CAN.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal.h:
@@ -65,3 +66,5 @@ Core/Src/CAN.o: ../Core/Src/CAN.c ../Core/Inc/CAN.h ../Core/Inc/main.h \
 ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_tim.h:
 ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_tim_ex.h:
 ../Core/Inc/_do_quasar_canopen.h:
+../Core/Inc/isolation.h:
+../Core/Inc/temp.h:

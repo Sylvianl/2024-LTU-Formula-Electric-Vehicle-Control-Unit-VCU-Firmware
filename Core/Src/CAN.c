@@ -8,7 +8,22 @@
 
 #include "CAN.h"
 
-void nodeGuarding(void)
+void initializeCAN(CAN_HandleTypeDef* hcan)
+{
+	if (HAL_CAN_Start(hcan) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	configCANFilters(hcan);
+
+	if (HAL_CAN_ActivateNotification(hcan, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
+	{
+		Error_Handler();
+	}
+}
+
+void nodeGuarding(CAN_HandleTypeDef* hcan)
 {
 	CAN_TxHeaderTypeDef txHeader;
 	uint8_t data[1] = { (0x00U) };
@@ -21,17 +36,17 @@ void nodeGuarding(void)
 	txHeader.StdId = ECU_EMD_NMT_node_guarding_CANID;
 	txHeader.TransmitGlobalTime = DISABLE;
 
-	if (HAL_CAN_AddTxMessage(&hcan1, &txHeader, data, &mailbox) != HAL_OK)
+	if (HAL_CAN_AddTxMessage(hcan, &txHeader, data, &mailbox) != HAL_OK)
 	{
 		Error_Handler();
 	}
 
-	while (HAL_CAN_IsTxMessagePending(&hcan1, mailbox));
+	while (HAL_CAN_IsTxMessagePending(hcan, mailbox));
 
 	return;
 }
 
-void startNode(void)
+void startNode(CAN_HandleTypeDef* hcan)
 {
 	CAN_TxHeaderTypeDef txHeader;
 	uint8_t data[8] = { (0x00U), (0x00U), (0x00U), (0x00U), (0x00U), (0x00U), (0x00U), (0x00U) };
@@ -51,17 +66,17 @@ void startNode(void)
 	txHeader.StdId = ECU_NMT_command_CANID;
 	txHeader.TransmitGlobalTime = DISABLE;
 
-	if (HAL_CAN_AddTxMessage(&hcan1, &txHeader, data, &mailbox) != HAL_OK)
+	if (HAL_CAN_AddTxMessage(hcan, &txHeader, data, &mailbox) != HAL_OK)
 	{
 		Error_Handler();
 	}
 
-	while (HAL_CAN_IsTxMessagePending(&hcan1, mailbox));
+	while (HAL_CAN_IsTxMessagePending(hcan, mailbox));
 
 	return;
 }
 
-void clearErrors(void)
+void clearErrors(CAN_HandleTypeDef* hcan)
 {
 	CAN_TxHeaderTypeDef txHeader;
 	uint8_t data[8] = { (0x00U), (0x00U), (0x00U), (0x00U), (0x00U), (0x00U), (0x00U), (0x00U) };
@@ -91,17 +106,17 @@ void clearErrors(void)
 	txHeader.StdId = EMD_RxPDO_3_CANID;
 	txHeader.TransmitGlobalTime = DISABLE;
 
-	if (HAL_CAN_AddTxMessage(&hcan1, &txHeader, data, &mailbox) != HAL_OK)
+	if (HAL_CAN_AddTxMessage(hcan, &txHeader, data, &mailbox) != HAL_OK)
 	{
 		Error_Handler();
 	}
 
-	while (HAL_CAN_IsTxMessagePending(&hcan1, mailbox));
+	while (HAL_CAN_IsTxMessagePending(hcan, mailbox));
 
 	return;
 }
 
-void torqueControlMessage(int _speedRefLimit, int* _torqueRefLimit)
+void torqueControlMessage(CAN_HandleTypeDef* hcan, int _speedRefLimit, int* _torqueRefLimit)
 {
 	CAN_TxHeaderTypeDef txHeader;
 	uint8_t data[8] = { (0x00U), (0x00U), (0x00U), (0x00U), (0x00U), (0x00U), (0x00U), (0x00U) };
@@ -131,12 +146,36 @@ void torqueControlMessage(int _speedRefLimit, int* _torqueRefLimit)
 	txHeader.StdId = EMD_RxPDO_3_CANID;
 	txHeader.TransmitGlobalTime = DISABLE;
 
-	if (HAL_CAN_AddTxMessage(&hcan1, &txHeader, data, &mailbox) != HAL_OK)
+	if (HAL_CAN_AddTxMessage(hcan, &txHeader, data, &mailbox) != HAL_OK)
 	{
 		Error_Handler();
 	}
 
-	while (HAL_CAN_IsTxMessagePending(&hcan1, mailbox));
+	while (HAL_CAN_IsTxMessagePending(hcan, mailbox));
 
 	return;
+}
+
+void configCANFilters(CAN_HandleTypeDef* hcan)
+{
+	CAN_FilterTypeDef filter;
+
+	filter.FilterActivation = CAN_FILTER_ENABLE;
+	filter.FilterBank = 0;
+	filter.FilterFIFOAssignment = CAN_LOW_PRIORITY_FIFO;
+	//filter.FilterIdHigh = ((0x300U)<<5);
+	filter.FilterIdHigh = ((0x37U)<<5);
+	filter.FilterIdLow = (0x000U);
+	//filter.FilterMaskIdHigh = ((0xFF8U)<<5);
+	filter.FilterMaskIdHigh = ((0x37U)<<5);
+	filter.FilterMaskIdLow = (0x000U);
+	//filter.FilterMode = CAN_FILTERMODE_IDMASK;
+	filter.FilterMode = CAN_FILTERMODE_IDLIST;
+	filter.FilterScale = CAN_FILTERSCALE_32BIT;
+	filter.SlaveStartFilterBank = 14;
+
+	if (HAL_CAN_ConfigFilter(hcan, &filter) != HAL_OK)
+	{
+		Error_Handler();
+	}
 }

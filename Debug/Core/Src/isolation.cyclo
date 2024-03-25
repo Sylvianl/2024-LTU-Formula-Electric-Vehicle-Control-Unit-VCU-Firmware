@@ -1,0 +1,2 @@
+../Core/Src/isolation.c:8:10:Unpack_IMD_Info_Isolation	1
+../Core/Src/isolation.c:16:10:Pack_IMD_Info_Isolation	2

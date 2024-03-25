@@ -1,4 +1,6 @@
-../Core/Src/CAN.c:11:6:nodeGuarding	40	static
-../Core/Src/CAN.c:34:6:startNode	56	static
-../Core/Src/CAN.c:64:6:clearErrors	72	static
-../Core/Src/CAN.c:104:6:torqueControlMessage	80	static
+../Core/Src/CAN.c:11:6:initializeCAN	16	static
+../Core/Src/CAN.c:26:6:nodeGuarding	48	static
+../Core/Src/CAN.c:49:6:startNode	64	static
+../Core/Src/CAN.c:79:6:clearErrors	80	static
+../Core/Src/CAN.c:119:6:torqueControlMessage	88	static
+../Core/Src/CAN.c:159:6:configCANFilters	56	static

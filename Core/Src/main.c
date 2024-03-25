@@ -24,7 +24,10 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
+#include "queue.h"
 #include "CAN.h"
+#include "string.h"
+#include "isolation.h"
 
 /* USER CODE END Includes */
 
@@ -40,6 +43,15 @@ typedef enum
 
 } bool;
 
+// Creates a CAN message typedef for queue
+typedef struct
+{
+	uint8_t data[8];
+	uint32_t StdID;
+	uint32_t RTR;
+
+} CAN_MsgHeaderTypedef;
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -54,6 +66,9 @@ typedef enum
 
 #define NODE_GUARDING_PERIOD 150
 #define TORQUE_CONTROL_PERIOD 10
+
+#define CAN_HIGH_PRIORITY_FIFO CAN_FILTER_FIFO1
+#define CAN_LOW_PRIORITY_FIFO CAN_FilterFIFO0
 
 /* USER CODE END PD */
 
@@ -159,6 +174,9 @@ const int TORQUE_REF_LIMIT_MIN = 5000; // Torque' = (%Torque + 100) / 0.02
 /******************** Error Detection ********************/
 bool errorSet[5] = { false };
 
+/******************** IMD Data ********************/
+IMD_Info_t imdInfo;
+
 // Index for error set array
 const int PRIM_THROTTLE_SENS_ERR = 0;
 const int SECOND_THROTTLE_SENS_ERR = 1;
@@ -233,6 +251,10 @@ TaskHandle_t task4Handle = NULL;
 TaskHandle_t task5Handle = NULL;
 TaskHandle_t task6Handle = NULL;
 
+// Queue Handlers
+QueueHandle_t lowPriorityQueue;
+QueueHandle_t highPriorityQueue;
+
 // RTD Speaker ISR
 void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
 {
@@ -245,6 +267,53 @@ void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
 
   /* NOTE : This function should not be modified, when the callback is needed,
             the HAL_TIM_OC_DelayElapsedCallback could be implemented in the user file
+   */
+}
+
+// CAN ISR
+
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+  /* Prevent unused argument(s) compilation warning */
+  //UNUSED(hcan);
+
+	CAN_RxHeaderTypeDef rxHeaderFIFO0;
+	uint8_t dataFIFO0[8];
+	CAN_MsgHeaderTypedef msgFIFO0;
+
+	if (hcan->Instance == CAN1)
+	{
+		if (HAL_CAN_GetRxMessage(hcan, CAN_LOW_PRIORITY_FIFO, &rxHeaderFIFO0, dataFIFO0) == HAL_OK)
+		{
+			msgFIFO0.StdID = rxHeaderFIFO0.StdId;
+			msgFIFO0.RTR = rxHeaderFIFO0.RTR;
+
+			memcpy(msgFIFO0.data, dataFIFO0, 8);
+
+			BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+			xQueueSendFromISR(lowPriorityQueue, &msgFIFO0, &xHigherPriorityTaskWoken);
+			portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+		}
+	}
+
+  /* NOTE : This function Should not be modified, when the callback is needed,
+            the HAL_CAN_RxFifo0MsgPendingCallback could be implemented in the
+            user file
+   */
+}
+
+void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+  /* Prevent unused argument(s) compilation warning */
+  //UNUSED(hcan);
+
+	//CAN_RxHeaderTypeDef rxHeaderFIFO1;
+	//uint8_t dataFIFO1[8];
+	//CAN_MsgHeaderTypedef msgFIFO1;
+
+  /* NOTE : This function Should not be modified, when the callback is needed,
+            the HAL_CAN_RxFifo1MsgPendingCallback could be implemented in the
+            user file
    */
 }
 
@@ -284,13 +353,33 @@ int main(void)
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_CAN_Start(&hcan1);
+  // ISR Priority reset
+  NVIC_SetPriorityGrouping(0);
+
+  // Initialize CAN1
+  initializeCAN(&hcan1);
 
   // CAN FAULT State -> Good
   HAL_GPIO_WritePin(CAN_FAULT_PORT, CAN_FAULT_PIN, NO_FAULT_STATE);
 
   // Enable CAN 1 Transreceiver
   HAL_GPIO_WritePin(CAN_ENABLE_1_PORT, CAN_ENABLE_1_PIN, CAN_ENABLE);
+
+  /***************************** Queue Creation *****************************/
+
+  lowPriorityQueue = xQueueCreate(10, sizeof(CAN_MsgHeaderTypedef));
+
+  if (lowPriorityQueue == NULL)
+  {
+	  Error_Handler();
+  }
+
+  highPriorityQueue = xQueueCreate(5, sizeof(CAN_MsgHeaderTypedef));
+
+  if (highPriorityQueue == NULL)
+  {
+	  Error_Handler();
+  }
 
   /***************************** Task Creation *****************************/
 
@@ -303,10 +392,10 @@ int main(void)
   xReturned = xTaskCreate(Task3_Handler, "Ignition", 200, NULL, tskIDLE_PRIORITY + 1, &task3Handle);
   configASSERT(xReturned == pdPASS);
 
-  xReturned = xTaskCreate(Task4_Handler, "BMS_GetData", 200, NULL, tskIDLE_PRIORITY + 1, &task4Handle);
+  xReturned = xTaskCreate(Task4_Handler, "Process_CAN_Data", 200, NULL, tskIDLE_PRIORITY + 1, &task4Handle);
   configASSERT(xReturned == pdPASS);
 
-  xReturned = xTaskCreate(Task5_Handler, "Temp_Sense_GetData", 200, NULL, tskIDLE_PRIORITY + 1, &task5Handle);
+  xReturned = xTaskCreate(Task5_Handler, "Analyze_CAN_Data", 200, NULL, tskIDLE_PRIORITY + 1, &task5Handle);
   configASSERT(xReturned == pdPASS);
 
   xReturned = xTaskCreate(Task6_Handler, "Torque_Derate", 200, NULL, tskIDLE_PRIORITY + 1, &task6Handle);
@@ -403,7 +492,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.NbrOfConversion = 4;
   hadc1.Init.DMAContinuousRequests = DISABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
@@ -686,7 +775,7 @@ void Task1_Handler(void* pvParameters)
 		vTaskDelayUntil(&xLastWakeTime, xFrequency);
 
 		// Inverter Node Guarding Frame
-		nodeGuarding();
+		nodeGuarding(&hcan1);
 	}
 }
 
@@ -725,12 +814,24 @@ void Task3_Handler(void* pvParameters)
 	}
 }
 
-/***************************** BMS Data Task *****************************/
+/***************************** CAN Data Processing Task *****************************/
 void Task4_Handler(void* pvParameters)
 {
+	CAN_MsgHeaderTypedef msg;
+
 	for (;;)
 	{
-
+		if (xQueueReceive(lowPriorityQueue, &msg, portMAX_DELAY) == pdPASS)
+		{
+			switch (msg.StdID)
+			{
+			case (IMD_Info_CANID):
+					Unpack_IMD_Info_Isolation(&imdInfo, msg.data, IMD_Info_DLC);
+					break;
+			default:
+				break;
+			}
+		}
 	}
 }
 
@@ -781,8 +882,8 @@ void ignitionTask(void)
 	{
 		if (HAL_GetTick() - buttonPressTime > IGNITION_BUTTON_THRESHOLD)
 		{
-			startNode();
-			clearErrors();
+			startNode(&hcan1);
+			clearErrors(&hcan1);
 
 			HAL_GPIO_WritePin(RTD_PIN_PORT, RTD_PIN, RTD_ACTIVE);
 
@@ -989,7 +1090,7 @@ void torqueRequest(void)
 		torqueRefLimit = constrain(torqueRefLimit, TORQUE_REF_LIMIT_MIN, TORQUE_REF_LIMIT_MAX);
 	}
 
-	torqueControlMessage(SPEED_REF_LIMIT, &torqueRefLimit);
+	torqueControlMessage(&hcan1, SPEED_REF_LIMIT, &torqueRefLimit);
 }
 
 
