@@ -24,6 +24,6 @@ void nodeGuarding(CAN_HandleTypeDef* hcan);
 void startNode(CAN_HandleTypeDef* hcan);
 void clearErrors(CAN_HandleTypeDef* hcan);
 void torqueControlMessage(CAN_HandleTypeDef* hcan, int _speedRefLimit, int* _torqueRefLimit);
-void configCANFilters(CAN_HandleTypeDef* hcan);
+void configTempSenseCANFilter(CAN_HandleTypeDef* hcan);
 
 #endif /* INC_CAN_H_ */

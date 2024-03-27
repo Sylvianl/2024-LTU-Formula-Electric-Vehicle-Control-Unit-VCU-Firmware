@@ -3,4 +3,4 @@
 ../Core/Src/CAN.c:49:6:startNode	64	static
 ../Core/Src/CAN.c:79:6:clearErrors	80	static
 ../Core/Src/CAN.c:119:6:torqueControlMessage	88	static
-../Core/Src/CAN.c:159:6:configCANFilters	56	static
+../Core/Src/CAN.c:159:6:configTempSenseCANFilter	56	static

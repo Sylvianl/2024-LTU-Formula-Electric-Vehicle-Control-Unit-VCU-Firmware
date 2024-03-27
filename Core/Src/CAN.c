@@ -15,7 +15,7 @@ void initializeCAN(CAN_HandleTypeDef* hcan)
 		Error_Handler();
 	}
 
-	configCANFilters(hcan);
+	configTempSenseCANFilter(hcan);
 
 	if (HAL_CAN_ActivateNotification(hcan, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
 	{
@@ -156,21 +156,18 @@ void torqueControlMessage(CAN_HandleTypeDef* hcan, int _speedRefLimit, int* _tor
 	return;
 }
 
-void configCANFilters(CAN_HandleTypeDef* hcan)
+void configTempSenseCANFilter(CAN_HandleTypeDef* hcan)
 {
 	CAN_FilterTypeDef filter;
 
 	filter.FilterActivation = CAN_FILTER_ENABLE;
 	filter.FilterBank = 0;
 	filter.FilterFIFOAssignment = CAN_LOW_PRIORITY_FIFO;
-	//filter.FilterIdHigh = ((0x300U)<<5);
-	filter.FilterIdHigh = ((0x37U)<<5);
+	filter.FilterIdHigh = ((0x301U)<<5);
 	filter.FilterIdLow = (0x000U);
-	//filter.FilterMaskIdHigh = ((0xFF8U)<<5);
-	filter.FilterMaskIdHigh = ((0x37U)<<5);
+	filter.FilterMaskIdHigh = ((0x301U)<<5);
 	filter.FilterMaskIdLow = (0x000U);
-	//filter.FilterMode = CAN_FILTERMODE_IDMASK;
-	filter.FilterMode = CAN_FILTERMODE_IDLIST;
+	filter.FilterMode = CAN_FILTERMODE_IDMASK;
 	filter.FilterScale = CAN_FILTERSCALE_32BIT;
 	filter.SlaveStartFilterBank = 14;
 

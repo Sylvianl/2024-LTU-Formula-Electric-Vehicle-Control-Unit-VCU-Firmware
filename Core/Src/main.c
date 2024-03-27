@@ -28,6 +28,7 @@
 #include "CAN.h"
 #include "string.h"
 #include "isolation.h"
+#include "temp.h"
 
 /* USER CODE END Includes */
 
@@ -176,6 +177,13 @@ bool errorSet[5] = { false };
 
 /******************** IMD Data ********************/
 IMD_Info_t imdInfo;
+
+/******************** Temp Sense Data ********************/
+TS_ECU1_TX1_t ecu1TX1;
+TS_ECU2_TX1_t ecu2TX1;
+TS_ECU3_TX1_t ecu3TX1;
+TS_ECU4_TX1_t ecu4TX1;
+TS_ECU5_TX1_t ecu5TX1;
 
 // Index for error set array
 const int PRIM_THROTTLE_SENS_ERR = 0;
@@ -825,9 +833,24 @@ void Task4_Handler(void* pvParameters)
 		{
 			switch (msg.StdID)
 			{
-			case (IMD_Info_CANID):
-					Unpack_IMD_Info_Isolation(&imdInfo, msg.data, IMD_Info_DLC);
-					break;
+			case IMD_Info_CANID:
+				Unpack_IMD_Info_Isolation(&imdInfo, msg.data, IMD_Info_DLC);
+				break;
+			case TS_ECU1_TX1_CANID:
+				Unpack_TS_ECU1_TX1_Temp(&ecu1TX1, msg.data, TS_ECU1_TX1_DLC);
+				break;
+			case TS_ECU2_TX1_CANID:
+				Unpack_TS_ECU2_TX1_Temp(&ecu2TX1, msg.data, TS_ECU2_TX1_DLC);
+				break;
+			case TS_ECU3_TX1_CANID:
+				Unpack_TS_ECU3_TX1_Temp(&ecu3TX1, msg.data, TS_ECU3_TX1_DLC);
+				break;
+			case TS_ECU4_TX1_CANID:
+				Unpack_TS_ECU4_TX1_Temp(&ecu4TX1, msg.data, TS_ECU4_TX1_DLC);
+				break;
+			case TS_ECU5_TX1_CANID:
+				Unpack_TS_ECU5_TX1_Temp(&ecu5TX1, msg.data, TS_ECU5_TX1_DLC);
+				break;
 			default:
 				break;
 			}
